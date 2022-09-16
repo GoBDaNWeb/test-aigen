@@ -1,5 +1,9 @@
-// * react
-import { useState } from 'react';
+// * services
+import useFilteredDocuments from '@services/documents/hooks/useFilteredDocuments';
+
+// * store
+import { observer } from 'mobx-react-lite';
+import filter from '@store/filter';
 
 // * styles
 import styles from './Main.module.scss';
@@ -7,12 +11,20 @@ import Pagination from '@mui/material/Pagination';
 
 // * components
 import Filters from './components/Filters';
-import Accordion from '../../ui/Accordion';
+import Accordion from './components/Accordion';
 
-const Main = () => {
-    const [page, setPage] = useState(1);
+const Main = observer(() => {
+    const { documents, isLoading } = useFilteredDocuments(
+        filter.page,
+        filter.sort,
+        filter.order,
+        filter.dates,
+        filter.name,
+        filter.uuid,
+    );
+
     const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-        setPage(value);
+        filter.setPage(value);
     };
 
     return (
@@ -20,17 +32,16 @@ const Main = () => {
             <Filters />
             <div className={styles.documents}>
                 <div className={styles.pagination}>
-                    <Accordion />
-
+                    <Accordion documents={documents} isLoading={isLoading} />
                     <Pagination
-                        count={10}
-                        page={page}
+                        count={filter.totalPages}
+                        page={filter.page}
                         onChange={handleChange}
                     />
                 </div>
             </div>
         </main>
     );
-};
+});
 
 export default Main;

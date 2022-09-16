@@ -1,81 +1,150 @@
 // * react
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import InputMask from 'react-input-mask';
 import DatePicker from 'react-datepicker';
 
 // * store
 import { observer } from 'mobx-react-lite';
-import filter from '../../../../../store/filter';
+import filter from '@store/filter';
+
+// * helpers
+import getDates from 'helpers/getDates';
 
 // * styles
 import styles from './Filters.module.scss';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // * components
-import SingleSelect from '../../../../ui/Select';
-import Title from '../../../../ui/Title';
-import InputWrapper from '../../../../ui/InputWrapper';
+import SingleSelect from '@components/ui/Select';
+import Title from '@components/ui/Title';
+import InputWrapper from '@components/ui/InputWrapper';
 
 const optionsSort = [
-    { value: 'Создан', label: 'Создан' },
-    { value: 'Название', label: 'Название' },
+    { value: 'createdAt', label: 'Создан' },
+    { value: 'name', label: 'Название' },
 ];
 const optionsOrder = [
-    { value: 'По убыванию', label: 'По убыванию' },
-    { value: 'По возрастанию', label: 'По возрастанию' },
+    { value: 'asc', label: 'По возрастанию' },
+    { value: 'desc', label: 'По убыванию' },
 ];
 
 const Filters = observer(() => {
-    const selectDate = (date: Date, name: string): void => {
-        name === 'start' && filter.setDateStart(date);
-        name === 'end' && filter.setDateEnd(date);
-    };
+    const { register, control, watch } = useForm();
+
+    const watchStart = watch('start');
+    const watchEnd = watch('end');
+
+    useEffect(() => {
+        const subscription = watch((value, { name }) => {
+            const uuidReplace = value.id?.replace(/[^a-zA-Z0-9\s!-?]+/g, '');
+            name === 'id' && filter.setUUID(uuidReplace);
+            name === 'name' && filter.setName(value.name);
+            name === 'start' && filter.setDateStart(value.start);
+            name === 'end' && filter.setDateEnd(value.end);
+            name === 'sort' &&
+                filter.setSort(value.sort === null ? null : value.sort.value);
+            name === 'order' && filter.setOrder(value.order.value);
+        });
+        return () => subscription.unsubscribe();
+    }, [watch]);
+
+    useEffect(() => {
+        const dates = getDates(watchStart, watchEnd);
+        filter.setDates(dates);
+    }, [watchStart, watchEnd]);
 
     return (
         <form className={styles.filters}>
-            <InputWrapper title="ID документа">
-                <InputMask mask="********-*********-****-***********" />
+            <InputWrapper
+                title="ID документа"
+                additional="Если заполнено поле ID документа, все остальные поля будут проигнорированы"
+            >
+                <Controller
+                    name="id"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                        <InputMask
+                            mask="********-****-****-****-************"
+                            onChange={onChange}
+                            value={value}
+                        />
+                    )}
+                />
             </InputWrapper>
             <div>
                 <Title variant="h4">Создан</Title>
                 <div className={styles.created}>
                     <InputWrapper>
-                        <DatePicker
-                            selected={filter.dateStart}
-                            onChange={(date: Date) => selectDate(date, 'start')}
-                            startDate={filter.dateStart}
-                            endDate={filter.dateEnd}
-                            maxDate={filter.dateEnd}
-                            dateFormat="dd-MM-yyyy"
+                        <Controller
+                            name="start"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <DatePicker
+                                    selected={value}
+                                    onChange={onChange}
+                                    startDate={filter.dateStart}
+                                    endDate={filter.dateEnd}
+                                    maxDate={filter.dateEnd}
+                                    dateFormat="dd-MM-yyyy"
+                                    isClearable
+                                />
+                            )}
                         />
                     </InputWrapper>
                     <InputWrapper>
-                        <DatePicker
-                            id="end"
-                            selected={filter.dateEnd}
-                            onChange={(date: Date) => selectDate(date, 'end')}
-                            startDate={filter.dateStart}
-                            endDate={filter.dateEnd}
-                            minDate={filter.dateStart}
-                            dateFormat="dd-MM-yyyy"
+                        <Controller
+                            name="end"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <DatePicker
+                                    selected={value}
+                                    onChange={onChange}
+                                    startDate={filter.dateStart}
+                                    endDate={filter.dateEnd}
+                                    minDate={filter.dateStart}
+                                    dateFormat="dd-MM-yyyy"
+                                    isClearable
+                                />
+                            )}
                         />
                     </InputWrapper>
                 </div>
             </div>
             <InputWrapper title="Название документа">
-                <input type="text" id="input" name="name" />
+                <input
+                    {...register('name')}
+                    type="text"
+                    id="input"
+                    name="name"
+                />
             </InputWrapper>
             <div>
                 <Title variant="h4">Сортировка</Title>
                 <div className={styles.sort}>
-                    <SingleSelect
-                        placeholder="Сортировка"
-                        isClearable
-                        options={optionsSort}
+                    <Controller
+                        name="sort"
+                        control={control}
+                        render={({ field: { onChange } }) => (
+                            <SingleSelect
+                                placeholder="Сортировка"
+                                isClearable
+                                onChange={onChange}
+                                options={optionsSort}
+                            />
+                        )}
                     />
-                    <SingleSelect
-                        placeholder="Сортировка"
-                        isClearable={false}
-                        options={optionsOrder}
+                    <Controller
+                        name="order"
+                        control={control}
+                        render={({ field: { onChange } }) => (
+                            <SingleSelect
+                                placeholder="Сортировка"
+                                isClearable={false}
+                                onChange={onChange}
+                                options={optionsOrder}
+                            />
+                        )}
                     />
                 </div>
             </div>

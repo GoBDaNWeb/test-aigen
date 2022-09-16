@@ -3,7 +3,7 @@ import styles from './Header.module.scss';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // * components
-import Title from '../../ui/Title';
+import Title from '@components/ui/Title';
 
 const Header = () => {
     return (

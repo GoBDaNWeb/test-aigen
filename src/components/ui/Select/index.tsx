@@ -21,6 +21,7 @@ const styles: StylesConfig<any> = {
 const SingleSelect: React.FC<ISelectProps> = ({
     placeholder,
     isClearable,
+    onChange,
     options,
 }) => {
     return (
@@ -28,6 +29,7 @@ const SingleSelect: React.FC<ISelectProps> = ({
             defaultValue={options[0]}
             isClearable={isClearable}
             isSearchable={false}
+            onChange={onChange}
             name="color"
             options={options}
             styles={styles}
