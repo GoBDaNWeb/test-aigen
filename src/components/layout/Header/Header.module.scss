@@ -1,0 +1,15 @@
+@import '../../../styles/variables';
+
+.header {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 3rem;
+    background: $headerColor;
+    height: 4rem;
+    color: $whiteTextColor;
+}
